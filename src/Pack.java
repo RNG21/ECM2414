@@ -5,19 +5,21 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import src.errors.InvalidPack;
+import src.errors.InvalidPlayerAmount;
 import src.utils.FileIO;
 
 public class Pack{
 
     private final int[] contents;
 
-    Pack(int[] contents){
+    public Pack(int[] contents) throws InvalidPack{
+        if (contents.length == 0) {throw new InvalidPack("Pack must not be empty");}
         this.contents = contents;
     };
 
     public int[] getContents(){
         return this.contents;
-    }
+    };
 
     /**
      * Each element on a new line
@@ -38,15 +40,24 @@ public class Pack{
      * @param n Generates 8n cards
      * @return The generated pack
      */
-    public static Pack generatePack(int n){
+    public static Pack generatePack(int n) throws InvalidPlayerAmount{
+        if (n <= 0) {
+            throw new InvalidPlayerAmount("Player amount must not be less than 1");
+        }
+
         Random rand = new Random();
-        int[] pack = new int[n];
+        int[] pack = new int[8*n];
 
         for (int i = 0; i < 8*n; i++) {
             pack[i] = rand.nextInt(n);
         }
 
-        return new Pack(pack);
+        try {
+            return new Pack(pack);
+        } catch (InvalidPack e) {
+            // Will never reach here but I have to do this to keep compiler happy
+            return null;
+        }
     };
 
     /**
@@ -62,22 +73,30 @@ public class Pack{
      * @param pack The pack to validate
      * @param n amount of players, pack file should have 8n lines
      * @throws InvalidPack when line isn't int or card amount isn't 8n
-     * @return Boolean indicating if it is valid
+     * @return a Pack object
      */
-    private static int[] validatePackFile(String[] pack, int n) throws InvalidPack{
+    private static Pack validatePackFile(String[] pack, int n) throws InvalidPack{
         ArrayList<Integer> output = new ArrayList<>();
 
-        // Check for non int and correct card count for given player amount
-        int count = 0;
-        try {
-            for (String line : pack) {
-                output.add(Integer.parseInt(line));
-                count += 1;
-            }
-        } catch (NumberFormatException e) { throw new InvalidPack("Non integer in pack file"); }
-        if (count != (8*n)) { throw new InvalidPack("Card amount must be 8 times player amount"); }
+        if (pack.length == 0) {
+            throw new InvalidPack("Pack must not be empty");
+        }
 
-        return output.stream().mapToInt(Integer::intValue).toArray();
+        if (pack.length != (8*n)) {
+            throw new InvalidPack("Card amount must be 8 times player amount");
+        }
+
+        String line = "";
+        try {
+            for (int i = 0; i < pack.length; i++) {
+                line = pack[i];
+                output.add(Integer.parseInt(line));
+            }
+        } catch (NumberFormatException e) {
+            throw new InvalidPack("Line is not integer: "+line);
+        }
+
+        return new Pack(output.stream().mapToInt(Integer::intValue).toArray());
     };
 
     /**
@@ -90,7 +109,7 @@ public class Pack{
      */
     public static Pack readPack(String filename, int playerAmount) throws IOException, InvalidPack{
         String[] stringPack = FileIO.fileToLines(filename);
-        return new Pack(validatePackFile(stringPack, playerAmount));
+        return validatePackFile(stringPack, playerAmount);
     };
 
 }
