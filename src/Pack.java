@@ -1,7 +1,6 @@
 package src;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Random;
 
 import src.errors.InvalidPack;
@@ -10,15 +9,18 @@ import src.utils.FileIO;
 
 public class Pack{
 
-    private final int[] contents;
+    private final Card[] cards;
 
-    public Pack(int[] contents) throws InvalidPack{
-        if (contents.length == 0) {throw new InvalidPack("Pack must not be empty");}
-        this.contents = contents;
+    /**
+     * Pack object only to be created by class methods
+     * @param cards
+     */
+    private Pack(Card[] cards){
+        this.cards = cards;
     };
 
-    public int[] getContents(){
-        return this.contents;
+    public Card[] getCards(){
+        return this.cards;
     };
 
     /**
@@ -26,13 +28,13 @@ public class Pack{
      */
     @Override
     public String toString(){
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
-        for (int element : this.contents) {
-            stringBuilder.append(element).append("\n");
+        for (Card element : this.cards) {
+            builder.append(element.toString()).append("\n");
         }
 
-        return stringBuilder.toString();
+        return builder.toString();
     };
 
     /**
@@ -46,18 +48,13 @@ public class Pack{
         }
 
         Random rand = new Random();
-        int[] pack = new int[8*n];
+        Card[] pack = new Card[8*n];
 
         for (int i = 0; i < 8*n; i++) {
-            pack[i] = rand.nextInt(n);
+            pack[i] = new Card(rand.nextInt(n));
         }
 
-        try {
-            return new Pack(pack);
-        } catch (InvalidPack e) {
-            // Will never reach here but I have to do this to keep compiler happy
-            return null;
-        }
+        return new Pack(pack);
     };
 
     /**
@@ -76,8 +73,6 @@ public class Pack{
      * @return a Pack object
      */
     private static Pack validatePackFile(String[] pack, int n) throws InvalidPack{
-        ArrayList<Integer> output = new ArrayList<>();
-
         if (pack.length == 0) {
             throw new InvalidPack("Pack must not be empty");
         }
@@ -87,16 +82,18 @@ public class Pack{
         }
 
         String line = "";
+        int i = 0;
+        Card[] output = new Card[pack.length];
         try {
-            for (int i = 0; i < pack.length; i++) {
+            for (i = 0; i < pack.length; i++) {
                 line = pack[i];
-                output.add(Integer.parseInt(line));
+                output[i] = new Card(Integer.parseInt(line));
             }
         } catch (NumberFormatException e) {
-            throw new InvalidPack("Line is not integer: "+line);
+            throw new InvalidPack(String.format("Line %d is not integer: \"%s\"", i+1, line));
         }
 
-        return new Pack(output.stream().mapToInt(Integer::intValue).toArray());
+        return new Pack(output);
     };
 
     /**
