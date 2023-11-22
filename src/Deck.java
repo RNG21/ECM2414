@@ -4,10 +4,19 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Deck {
     private LinkedBlockingQueue<Card> cards = new LinkedBlockingQueue<>();
+    private final int deckNumber;
+
+    public Deck(int deckNumber){
+        this.deckNumber = deckNumber;
+    };
 
     @Override
     public String toString(){
         return this.cards.toString();
+    }
+
+    public int getDeckNumber() {
+        return this.deckNumber;
     }
 
     /**

@@ -1,10 +1,12 @@
 package src;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Random;
 
 import src.errors.InvalidPack;
 import src.errors.InvalidPlayerAmount;
+import src.errors.MaxLines;
 import src.utils.FileIO;
 
 public class Pack{
@@ -73,25 +75,41 @@ public class Pack{
      * @return a Pack object
      */
     private static Pack validatePackFile(String[] pack, int n) throws InvalidPack{
+        if (pack == null) {
+            throw new InvalidPack("Pack must not be null");
+        }
+
         if (pack.length == 0) {
             throw new InvalidPack("Pack must not be empty");
         }
 
         if (pack.length != (8*n)) {
-            throw new InvalidPack("Card amount must be 8 times player amount");
+            throw new InvalidPack(String.format(
+                    "File's line count must be 8 times player amount (%d lines), instead found %d lines", 
+                    8*n, pack.length
+                ));
         }
 
         String line = "";
-        int i = 0;
+        int number;
         Card[] output = new Card[pack.length];
-        try {
-            for (i = 0; i < pack.length; i++) {
-                line = pack[i];
-                output[i] = new Card(Integer.parseInt(line));
+
+        for (int i = 0; i < pack.length; i++) {
+            line = pack[i];
+            
+            try {
+                number = Integer.parseInt(line);
+            } catch (NumberFormatException e) {
+                throw new InvalidPack(String.format("Line %d is not integer: \"%s\"", i+1, line));
             }
-        } catch (NumberFormatException e) {
-            throw new InvalidPack(String.format("Line %d is not integer: \"%s\"", i+1, line));
+
+            if (number < 0) {
+                throw new InvalidPack(String.format("Line %d is not positive integer: \"%s\"", i+1, line));
+            }
+
+            output[i] = new Card(number);
         }
+
 
         return new Pack(output);
     };
@@ -101,11 +119,20 @@ public class Pack{
      * @param filename The file to read from
      * @param playerAmount player amount
      * @throws IOException Error when reading file
+     * @throws FileNotFoundException File not found
      * @throws InvalidPack Given pack file is invalid
      * @return Pack object
      */
-    public static Pack readPack(String filename, int playerAmount) throws IOException, InvalidPack{
-        String[] stringPack = FileIO.fileToLines(filename);
+    public static Pack readPack(String filename, int playerAmount) throws IOException, FileNotFoundException, InvalidPack{
+        String[] stringPack;
+        try {
+            stringPack = FileIO.fileToLines(filename, 8*playerAmount);
+        } catch (MaxLines e) {
+            throw new InvalidPack(String.format(
+                "File's line count must be 8 times player amount (%d lines), instead found >%d lines", 
+                8*playerAmount, 8*playerAmount
+            ));
+        } 
         return validatePackFile(stringPack, playerAmount);
     };
 
