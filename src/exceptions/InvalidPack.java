@@ -1,4 +1,4 @@
-package src.errors;
+package src.exceptions;
 
 /**
  * Thrown when given pack file is invalid

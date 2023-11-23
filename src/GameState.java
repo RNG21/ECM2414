@@ -1,6 +1,6 @@
 package src;
 
-import src.errors.AlreadyWon;
+import src.exceptions.AlreadyWon;
 
 public class GameState {
     private boolean isWon_ = false;

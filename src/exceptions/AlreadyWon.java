@@ -1,4 +1,4 @@
-package src.errors;
+package src.exceptions;
 
 /**
  * Thrown when another player has already declared a win

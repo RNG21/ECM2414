@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import src.errors.MaxLines;
+import src.exceptions.MaxLines;
 
 public class FileIO {
     /**

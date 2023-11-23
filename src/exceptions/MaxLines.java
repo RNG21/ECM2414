@@ -1,4 +1,4 @@
-package src.errors;
+package src.exceptions;
 
 /**
  * Thrown in FileIO.fileToLines when file line count exceeds the {@code max} parameter

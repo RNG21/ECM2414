@@ -1,4 +1,4 @@
-package src.errors;
+package src.exceptions;
 
 /**
  * Thrown when player amount is less than 1

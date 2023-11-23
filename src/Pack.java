@@ -2,11 +2,13 @@ package src;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Random;
 
-import src.errors.InvalidPack;
-import src.errors.InvalidPlayerAmount;
-import src.errors.MaxLines;
+import src.exceptions.InvalidPack;
+import src.exceptions.InvalidPlayerAmount;
+import src.exceptions.MaxLines;
 import src.utils.FileIO;
 
 public class Pack{
@@ -20,6 +22,10 @@ public class Pack{
     private Pack(Card[] cards){
         this.cards = cards;
     };
+
+    public Iterator<Card> iterator(){
+        return Arrays.stream(this.cards).iterator();
+    }
 
     public Card[] getCards(){
         return this.cards;
