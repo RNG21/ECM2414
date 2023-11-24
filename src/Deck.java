@@ -1,6 +1,7 @@
 package src;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Deck {
@@ -34,10 +35,13 @@ public class Deck {
      * Removes a card from the top of the deck
      * @return the removed card
      */
-    public synchronized Card drawCard(){
-        while (this.cards.isEmpty()) {
-            System.out.println(this.deckNumber+"waiting");
-            try { wait(); } catch (InterruptedException ignored) { return null; }
+    public synchronized Card drawCard() throws NoSuchElementException{
+        if (this.cards.isEmpty()) {
+            try {
+                wait(100);
+            } catch (InterruptedException ignored) {
+                return null;
+            }
         }
         return this.cards.remove();
     }
