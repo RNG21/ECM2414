@@ -45,12 +45,21 @@ public class Deck {
      * Removes a card from the top of the deck
      * @return the removed card
      */
-    public synchronized Card drawCard() throws NoSuchElementException{
+    public Card drawCard() throws NoSuchElementException{
+        return this.cards.remove();
+    }
+
+    /**
+     * Peeks the card on top of the deck
+     * @return the card
+     */
+    public synchronized Card peek(){
         if (this.cards.isEmpty()) {
+            System.out.println(this.deckNumber);
             try {
-                wait(100);
+                wait(1000);
             } catch (InterruptedException ignored) {}
         }
-        return this.cards.remove();
+        return this.cards.peek();
     }
 }

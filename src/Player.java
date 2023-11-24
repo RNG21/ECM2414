@@ -35,20 +35,11 @@ public class Player implements Runnable {
         this.rightDeck = rightDeck;
         this.state = state;
 
-        ArrayList<Card> sortedHand = new ArrayList<>();
-        for (Card card : initialHand) {
-            if (card.getValue() == this.playerNumber) {
-                sortedHand.add(0, card);
-                preferredCardAmount += 1;
-            } else {
-                sortedHand.add(card);
-            }
-        }
-        this.hand = sortedHand.toArray(new Card[initialHand.length]);
+        this.hand = checkInitialHand(initialHand);
 
         String outputFilePath = "./logs/Player"+this.playerNumber+"_output.txt";
         this.logger = Logger.getLogger("Player"+this.playerNumber);
-        logger.setUseParentHandlers(false);  // Disable output to console
+        logger.setUseParentHandlers(false);  // Disable logger output to console
         try {
             Files.createDirectories(Paths.get("./logs"));
 
@@ -60,6 +51,26 @@ public class Player implements Runnable {
             logger.addHandler(fh);
 
           } catch (IOException ignored) {}
+    }
+
+    /**
+     * Checks initial hand for preferred cards, puts them towards the front
+     * logic explained in {@link Player#compareAndInsert()}
+     * @param initialHand initial hand for player
+     * @return the sorted hand
+     * @see Player#compareAndInsert()
+     */
+    private Card[] checkInitialHand(Card[] initialHand){
+        ArrayList<Card> sortedHand = new ArrayList<>();
+        for (Card card : initialHand) {
+            if (card.getValue() == this.playerNumber) {
+                sortedHand.add(0, card);
+                preferredCardAmount += 1;
+            } else {
+                sortedHand.add(card);
+            }
+        }
+        return sortedHand.toArray(new Card[initialHand.length]);
     }
 
     @Override
@@ -102,7 +113,8 @@ public class Player implements Runnable {
      * preferredCardAmount = 2
      * 
      * Cards with indices >=preferredCardAmount -> discards
-     * range of indices to discard constrained by preferredCardAmount in discardCards()
+     * range of indices to discard constrained by preferredCardAmount
+     * @param card The card to insert
     */
     private void compareAndInsert(Card card){
         if (card.getValue() == this.playerNumber) {
@@ -120,11 +132,11 @@ public class Player implements Runnable {
     }
 
     /**
-     * Discards a random non preferred card to rightDeck
+     * Discards a random non-preferred card to rightDeck
      * @return The discarded card
      */
     private Card discardCard(){
-        // Constrain range of indicies to avoid discarding preferred cards
+        // Constrain range of cards to discard to avoid discarding preferred cards
         int randomIndex = Random.randInt(this.preferredCardAmount, this.hand.length);
         Card card = this.hand[randomIndex];
 
@@ -145,10 +157,6 @@ public class Player implements Runnable {
         );
     }
 
-    /**
-     * Checks if current hand is winning hand
-     * @return 
-     */
     private boolean isWinningHand(){
         return this.preferredCardAmount == this.hand.length;
     }
@@ -164,25 +172,21 @@ public class Player implements Runnable {
                 return;
             }
 
+            while (this.leftDeck.peek() == null) {
+                if (this.state.isWon()) {
+                    return;
+                }
+            }
+
             this.logger.log(Level.INFO, 
                 "Player " + this.playerNumber + 
                 " discards a " + discardCard() + 
                 " to deck " + this.rightDeck.getDeckNumber()
             );
-            
-            Card card;
-            while (true) {
-                card = drawCard();
-                if (this.state.isWon()) {
-                    return;
-                } else if (card instanceof Card) {
-                    break;
-                }
-            }
 
             this.logger.log(Level.INFO,
                 "Player " + this.playerNumber +
-                " draws a " + card +
+                " draws a " + drawCard() +
                 " from deck " + this.leftDeck.getDeckNumber()
             );
 
