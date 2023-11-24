@@ -145,20 +145,14 @@ public class CardGame {
         Iterator<Card> pack_ = pack.iterator();
 
         Card[][][] result = new Card[2][playerAmount][4];
-        Card[] cards;
 
-
-        for (int k = 0; k < 2; k++) {
-            // when k = 0 -> insert into player hands
-            // when k = 1 -> insert into decks
-            for (int playerNum = 0; playerNum < playerAmount; playerNum++) {
-
-                cards = new Card[4];
-                for (int cardPos = 0; cardPos < 4; cardPos++) {
-                    cards[cardPos] = pack_.next();
+        for (int i = 0; i < 2; i++) {
+            // when i = 0 -> insert into player hands
+            // when i = 1 -> insert into decks
+            for (int cardPos = 0; cardPos < 4; cardPos++) {
+                for (int playerNum = 0; playerNum < playerAmount; playerNum++) {
+                    result[i][playerNum][cardPos] = pack_.next();
                 }
-
-                result[k][playerNum] = cards;
             }
         }
 
