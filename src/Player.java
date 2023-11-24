@@ -1,17 +1,17 @@
 package src;
 
-import java.util.LinkedHashSet;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.io.File;
 import java.io.IOException;
 
 import src.exceptions.AlreadyWon;
+import src.utils.CustomFormatter;
 import src.utils.Random;
 
-public class Player extends Thread {
+public class Player implements Runnable {
     private final Logger logger;
     private final int playerNumber;
 
@@ -33,18 +33,20 @@ public class Player extends Thread {
 
         this.hand = initialHand;
 
-        String loggerFilename = "Player"+this.playerNumber+"output.txt";
+        String loggerFilename = "Player"+this.playerNumber+" output.txt";
         this.logger = Logger.getLogger("Player"+this.playerNumber);
         File file = new File(loggerFilename);
         try {
             file.createNewFile();
-            logger.addHandler(new FileHandler(loggerFilename));
+            FileHandler fh = new FileHandler(loggerFilename);
+            fh.setFormatter(new CustomFormatter());
+            logger.addHandler(fh);
           } catch (IOException ignored) {}
     }
 
     @Override
     public String toString(){
-        return "player " + this.playerNumber + " current hand is " + this.hand;
+        return "player " + this.playerNumber + " current hand is " + Arrays.toString(this.hand);
     }
 
     public int getPlayerNumber(){
@@ -62,9 +64,18 @@ public class Player extends Thread {
     private Card drawCard(){
         Card card = leftDeck.drawCard();
         if (card.getValue() == this.playerNumber) {
+            Card temp = this.hand[this.preferredCardAmount];
+            if (temp == null) {
+                this.hand[this.emptySlot] = card;
+            } else {
+                this.hand[this.emptySlot] = temp;
+                this.hand[this.preferredCardAmount] = card;
+            }
             this.preferredCardAmount += 1;
+        } else {
+            this.hand[this.emptySlot] = card;
         }
-        this.hand[this.emptySlot] = card;
+        
         return card;
     }
 
@@ -90,10 +101,17 @@ public class Player extends Thread {
         try{this.state.declareWin(this);} catch (AlreadyWon ignored) {}
     }
 
+    /**
+     * Checks if current hand is winning hand
+     * @return 
+     */
     private boolean isWinningHand(){
         return this.preferredCardAmount == this.hand.length;
     }
 
+    /**
+     * Game loop, performs actions and logs them
+     */
     public void gameLoop(){
         while (!this.state.isWon()) {
             logger.log(Level.INFO, 
@@ -109,13 +127,21 @@ public class Player extends Thread {
             );
 
             logger.log(Level.INFO,
-                "Player " + this.playerNumber + " current hand is " + this.hand
+                this.toString()
             );
 
             if (isWinningHand()) {
                 declareWin();
-                break;
+                System.out.println("player "+this.playerNumber+" wins");
             }
         }
+    }
+
+    /**
+     * Starts the player as a thread
+     */
+    @Override
+    public void run(){
+        gameLoop();
     }
 }

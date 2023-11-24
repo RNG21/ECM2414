@@ -1,13 +1,15 @@
 package src;
 
+import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Deck {
-    private LinkedBlockingQueue<Card> cards = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<Card> cards;
     private final int deckNumber;
 
-    public Deck(int deckNumber){
+    public Deck(int deckNumber, Card[] cards){
         this.deckNumber = deckNumber;
+        this.cards = new LinkedBlockingQueue<>(Arrays.asList(cards));
     };
 
     @Override
@@ -23,15 +25,20 @@ public class Deck {
      * Adds a card to the bottom of the deck
      * @param card the card to add
      */
-    public void addCard(Card card){
-        cards.add(card);
+    public synchronized void addCard(Card card){
+        this.cards.add(card);
+        notify();
     }
 
     /**
      * Removes a card from the top of the deck
      * @return the removed card
      */
-    public Card drawCard(){
-        return cards.remove();
+    public synchronized Card drawCard(){
+        while (this.cards.isEmpty()) {
+            System.out.println(this.deckNumber+"waiting");
+            try { wait(); } catch (InterruptedException ignored) { return null; }
+        }
+        return this.cards.remove();
     }
 }

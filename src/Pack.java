@@ -4,23 +4,25 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Random;
 
 import src.exceptions.InvalidPack;
 import src.exceptions.InvalidPlayerAmount;
 import src.exceptions.MaxLines;
 import src.utils.FileIO;
+import src.utils.Random;
 
 public class Pack{
 
     private final Card[] cards;
+    private final int playerAmount;
 
     /**
      * Pack object only to be created by class methods
      * @param cards
      */
-    private Pack(Card[] cards){
+    private Pack(Card[] cards, int playerAmount){
         this.cards = cards;
+        this.playerAmount = playerAmount;
     };
 
     public Iterator<Card> iterator(){
@@ -30,6 +32,10 @@ public class Pack{
     public Card[] getCards(){
         return this.cards;
     };
+
+    public int getPlayerAmount(){
+        return this.playerAmount;
+    }
 
     /**
      * Each element on a new line
@@ -55,14 +61,13 @@ public class Pack{
             throw new InvalidPlayerAmount("Player amount must not be less than 1");
         }
 
-        Random rand = new Random();
         Card[] pack = new Card[8*n];
 
         for (int i = 0; i < 8*n; i++) {
-            pack[i] = new Card(rand.nextInt(n));
+            pack[i] = new Card(Random.randInt(1, n+1));
         }
 
-        return new Pack(pack);
+        return new Pack(pack, n);
     };
 
     /**
@@ -116,8 +121,7 @@ public class Pack{
             output[i] = new Card(number);
         }
 
-
-        return new Pack(output);
+        return new Pack(output, n);
     };
 
     /**
