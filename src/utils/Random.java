@@ -1,6 +1,6 @@
 package src.utils;
 
-public class Random {
+public class Random extends java.util.Random {
 
     /**
      * Generates a random integer in provided range

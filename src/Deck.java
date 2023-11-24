@@ -51,13 +51,13 @@ public class Deck {
 
     /**
      * Peeks the card on top of the deck
+     * @param timeoutMillis 
      * @return the card
      */
-    public synchronized Card peek(){
+    public synchronized Card peek(int timeoutMillis){
         if (this.cards.isEmpty()) {
-            System.out.println(this.deckNumber);
             try {
-                wait(1000);
+                wait(timeoutMillis);
             } catch (InterruptedException ignored) {}
         }
         return this.cards.peek();

@@ -113,7 +113,6 @@ public class Player implements Runnable {
      * preferredCardAmount = 2
      * 
      * Cards with indices >=preferredCardAmount -> discards
-     * range of indices to discard constrained by preferredCardAmount
      * @param card The card to insert
     */
     private void compareAndInsert(Card card){
@@ -172,7 +171,7 @@ public class Player implements Runnable {
                 return;
             }
 
-            while (this.leftDeck.peek() == null) {
+            while (this.leftDeck.peek(100) == null) {
                 if (this.state.isWon()) {
                     return;
                 }
