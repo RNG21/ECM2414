@@ -3,6 +3,7 @@ package src;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.io.File;
@@ -33,7 +34,17 @@ public class Player implements Runnable {
         this.leftDeck = leftDeck;
         this.rightDeck = rightDeck;
         this.state = state;
-        this.hand = initialHand;
+
+        ArrayList<Card> sortedHand = new ArrayList<>();
+        for (Card card : initialHand) {
+            if (card.getValue() == this.playerNumber) {
+                sortedHand.add(0, card);
+                preferredCardAmount += 1;
+            } else {
+                sortedHand.add(card);
+            }
+        }
+        this.hand = sortedHand.toArray(new Card[initialHand.length]);
 
         String outputFilePath = "./logs/Player"+this.playerNumber+"_output.txt";
         this.logger = Logger.getLogger("Player"+this.playerNumber);
@@ -76,18 +87,24 @@ public class Player implements Runnable {
             return null;
         }
 
-        /*
-         * Insert preferred card into hand[preferredCardAmount].
-         * If occupied, move non-preferred card to hand[emptySlot].
-         * Example player4:
-         * preferredCardAmount = 1
-         * 4 -> [4, 3, 6, null]
-         * [4, 4, 6, 3]
-         * preferredCardAmount = 2
-         * 
-         * Cards with indices >=preferredCardAmount -> discards
-         * range of indices to discard constrained by preferredCardAmount in discardCards()
-         */
+        compareAndInsert(card);
+        
+        return card;
+    }
+
+    /**
+     * Insert preferred card into hand[preferredCardAmount].
+     * If occupied, move non-preferred card to hand[emptySlot].
+     * Example player4:
+     * preferredCardAmount = 1
+     * 4 -> [4, 3, 6, null]
+     * [4, 4, 6, 3]
+     * preferredCardAmount = 2
+     * 
+     * Cards with indices >=preferredCardAmount -> discards
+     * range of indices to discard constrained by preferredCardAmount in discardCards()
+    */
+    private void compareAndInsert(Card card){
         if (card.getValue() == this.playerNumber) {
             Card temp = this.hand[this.preferredCardAmount];
             if (temp == null) {
@@ -100,8 +117,6 @@ public class Player implements Runnable {
         } else {
             this.hand[this.emptySlot] = card;
         }
-        
-        return card;
     }
 
     /**
@@ -124,7 +139,7 @@ public class Player implements Runnable {
      * Declare and broadcast win to other players
      */
     private void declareWin(){
-        try{this.state.declareWin(this);} catch (AlreadyWon ignored) {}
+        try{this.state.declareWin(this);} catch (AlreadyWon ignored) {};
         this.logger.log(Level.INFO,
             "player "+this.playerNumber+" wins"
         );
@@ -143,6 +158,12 @@ public class Player implements Runnable {
      */
     public void gameLoop(){
         while (!this.state.isWon()) {
+            if (isWinningHand()) {
+                declareWin();
+                System.out.println("player "+this.playerNumber+" wins");
+                return;
+            }
+
             this.logger.log(Level.INFO, 
                 "Player " + this.playerNumber + 
                 " discards a " + discardCard() + 
@@ -168,11 +189,6 @@ public class Player implements Runnable {
             this.logger.log(Level.INFO,
                 this.toString()
             );
-
-            if (isWinningHand()) {
-                declareWin();
-                System.out.println("player "+this.playerNumber+" wins");
-            }
         }
     }
 
@@ -196,5 +212,8 @@ public class Player implements Runnable {
             "player "+this.playerNumber+" exits\n"+
             "player "+this.playerNumber+" final hand: "+Arrays.toString(this.hand)
         );
+        try{
+            this.leftDeck.writeToFile("./logs/deck"+this.leftDeck.getDeckNumber()+"_output.txt");
+        } catch (IOException ignored) {}
     }
 }

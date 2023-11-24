@@ -1,8 +1,11 @@
 package src;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import src.utils.FileIO;
 
 public class Deck {
     private final LinkedBlockingQueue<Card> cards;
@@ -22,6 +25,13 @@ public class Deck {
         return this.deckNumber;
     }
 
+    public void writeToFile(String dir) throws IOException{
+        FileIO.writeToFile(
+            dir,
+            "deck"+this.deckNumber+" contains "+this.toString()
+            );
+    }
+
     /**
      * Adds a card to the bottom of the deck
      * @param card the card to add
@@ -39,9 +49,7 @@ public class Deck {
         if (this.cards.isEmpty()) {
             try {
                 wait(100);
-            } catch (InterruptedException ignored) {
-                return null;
-            }
+            } catch (InterruptedException ignored) {}
         }
         return this.cards.remove();
     }
