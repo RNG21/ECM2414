@@ -16,14 +16,16 @@ public class Pack{
     private final Card[] cards;
     private final int playerAmount;
 
-    /**
-     * Pack object only to be created by class methods
-     * @param cards
-     */
+
     private Pack(Card[] cards, int playerAmount){
         this.cards = cards;
         this.playerAmount = playerAmount;
     };
+
+    public Pack(int[] cards, int playerAmount) throws InvalidPack {
+        this.cards = validatePack(cards, playerAmount);
+        this.playerAmount = playerAmount;
+    }
 
     public Iterator<Card> iterator(){
         return Arrays.stream(this.cards).iterator();
@@ -90,10 +92,6 @@ public class Pack{
             throw new InvalidPack("Pack must not be null");
         }
 
-        if (pack.length == 0) {
-            throw new InvalidPack("Pack must not be empty");
-        }
-
         if (pack.length != (8*n)) {
             throw new InvalidPack(String.format(
                     "File's line count must be 8 times player amount (%d lines), instead found %d lines", 
@@ -123,6 +121,35 @@ public class Pack{
 
         return new Pack(output, n);
     };
+
+    /**
+     * Validates a int[] pack and converts it into Card[]
+     * @param pack the pack to validate
+     * @param n player amount
+     * @return the converted array
+     * @throws InvalidPack Pack is invalid
+     */
+    public static Card[] validatePack(int[] pack, int n) throws InvalidPack{
+        if (pack.length != (8*n)) {
+            throw new InvalidPack(String.format(
+                "Array length must be 8 times player amount (%d), is instead %d", 
+                8*n, pack.length
+            ));
+        }
+
+        Card[] output = new Card[pack.length];
+        for (int i = 0; i < pack.length; i++) {
+            if (pack[i] < 0) {
+                throw new InvalidPack(String.format(
+                    "Element %d is not positive integer: \"%d\"", 
+                    i, pack[i]
+                ));
+            }
+
+            output[i] = new Card(pack[i]);
+        }
+        return output;
+    }
 
     /**
      * Reads a pack from a text file
