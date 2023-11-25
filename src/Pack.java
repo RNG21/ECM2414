@@ -16,7 +16,6 @@ public class Pack{
     private final Card[] cards;
     private final int playerAmount;
 
-
     private Pack(Card[] cards, int playerAmount){
         this.cards = cards;
         this.playerAmount = playerAmount;
@@ -85,13 +84,17 @@ public class Pack{
      */
     public static Card[] validatePack(String[] pack, int n) throws InvalidPack{
         // Converts string to int then pass into validatePack(int[], int)
+        if (pack == null) {
+            throw new InvalidPack("Pack must not be null");
+        }
+        
         int[] convertToInt = new int[pack.length];
 
         for (int i = 0; i < pack.length; i++) {
             try {
                 convertToInt[i] = Integer.parseInt(pack[i]);
             } catch (NumberFormatException e) {
-                throw new InvalidPack(String.format("Element %d is not integer: \"%d\"", i, pack[i]));
+                throw new InvalidPack(String.format("Element %d is not integer: \"%s\"", i, pack[i]));
             }
         }
 
