@@ -81,55 +81,35 @@ public class Pack{
     };
   
     /**
-     * Validates a pack read from file before converting into a Pack object
-     * @param pack The pack to validate
-     * @param n amount of players, pack file should have 8n lines
-     * @throws InvalidPack when line isn't int or card amount isn't 8n
-     * @return a Pack object
+     * Overloaded method, see {@link Pack#validatePack(int[], int)}
      */
-    private static Pack validatePackFile(String[] pack, int n) throws InvalidPack{
-        if (pack == null) {
-            throw new InvalidPack("Pack must not be null");
-        }
-
-        if (pack.length != (8*n)) {
-            throw new InvalidPack(String.format(
-                    "File's line count must be 8 times player amount (%d lines), instead found %d lines", 
-                    8*n, pack.length
-                ));
-        }
-
-        String line = "";
-        int number;
-        Card[] output = new Card[pack.length];
+    public static Card[] validatePack(String[] pack, int n) throws InvalidPack{
+        // Converts string to int then pass into validatePack(int[], int)
+        int[] convertToInt = new int[pack.length];
 
         for (int i = 0; i < pack.length; i++) {
-            line = pack[i];
-            
             try {
-                number = Integer.parseInt(line);
+                convertToInt[i] = Integer.parseInt(pack[i]);
             } catch (NumberFormatException e) {
-                throw new InvalidPack(String.format("Line %d is not integer: \"%s\"", i+1, line));
+                throw new InvalidPack(String.format("Element %d is not integer: \"%d\"", i, pack[i]));
             }
-
-            if (number < 0) {
-                throw new InvalidPack(String.format("Line %d is not positive integer: \"%s\"", i+1, line));
-            }
-
-            output[i] = new Card(number);
         }
 
-        return new Pack(output, n);
+        return validatePack(convertToInt, n);
     };
 
     /**
-     * Validates a int[] pack and converts it into Card[]
+     * Validates a an array containing the pack's values and converts it into Card[]
      * @param pack the pack to validate
      * @param n player amount
      * @return the converted array
      * @throws InvalidPack Pack is invalid
      */
     public static Card[] validatePack(int[] pack, int n) throws InvalidPack{
+        if (pack == null) {
+            throw new InvalidPack("Pack must not be null");
+        }
+
         if (pack.length != (8*n)) {
             throw new InvalidPack(String.format(
                 "Array length must be 8 times player amount (%d), is instead %d", 
@@ -170,7 +150,8 @@ public class Pack{
                 8*playerAmount, 8*playerAmount
             ));
         } 
-        return validatePackFile(stringPack, playerAmount);
+        Card[] cards = validatePack(stringPack, playerAmount);
+        return new Pack(cards, playerAmount);
     };
 
 }
