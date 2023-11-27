@@ -165,6 +165,16 @@ public class Player implements Runnable {
     }
 
     private boolean isWinningHand(){
+        if (this.preferredCardAmount == 0) {
+            Card lastCard = null;
+            for (Card card : this.hand) {
+                if (lastCard != card) {
+                    return false;
+                }
+                lastCard = card;
+            }
+        }
+
         return this.preferredCardAmount == this.hand.length;
     }
 
