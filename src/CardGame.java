@@ -54,6 +54,11 @@ public class CardGame {
         Pack pack = CardGame.getPackPath(playerAmount, scanner);
         scanner.close();
         
+        return start(playerAmount, pack);
+    }
+
+    public static CardGame start(int playerAmount, Pack pack){
+        
         CardGame gameInstance = new CardGame(playerAmount, pack);
 
         for (Player player : gameInstance.players) {
