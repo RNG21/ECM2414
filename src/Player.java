@@ -37,8 +37,16 @@ public class Player implements Runnable {
 
         this.hand = checkInitialHand(initialHand);
 
+        this.logger = loggerSetup(Logger.getLogger("Player"+this.playerNumber));
+    }
+
+    /**
+     * Sets up logger format and creates directory and files ready for logging
+     * @param logger the logger to add formatting to
+     * @return The logger
+     */
+    private Logger loggerSetup(Logger logger){
         String outputFilePath = "./logs/Player"+this.playerNumber+"_output.txt";
-        this.logger = Logger.getLogger("Player"+this.playerNumber);
         logger.setUseParentHandlers(false);  // Disable logger output to console
         try {
             Files.createDirectories(Paths.get("./logs"));
@@ -49,16 +57,16 @@ public class Player implements Runnable {
             FileHandler fh = new FileHandler(outputFilePath);
             fh.setFormatter(new CustomFormatter());
             logger.addHandler(fh);
-
           } catch (IOException ignored) {}
+        return logger;
     }
 
     /**
      * Checks initial hand for preferred cards, puts them towards the front
-     * logic explained in {@link Player#compareAndInsert()}
+     * logic explained in {@link Player#compareAndInsert}
      * @param initialHand initial hand for player
      * @return the sorted hand
-     * @see Player#compareAndInsert()
+     * @see Player#compareAndInsert
      */
     private Card[] checkInitialHand(Card[] initialHand){
         ArrayList<Card> sortedHand = new ArrayList<>();

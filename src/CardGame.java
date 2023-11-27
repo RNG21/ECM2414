@@ -9,7 +9,7 @@ import src.exceptions.InvalidPack;
 import src.exceptions.InvalidPlayerAmount;
 
 public class CardGame {
-    private final GameState state = new GameState();;
+    private final GameState state = new GameState();
 
     private final int playerAmount;
     private final Player[] players;
