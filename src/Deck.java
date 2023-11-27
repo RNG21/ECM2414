@@ -13,7 +13,11 @@ public class Deck {
 
     public Deck(int deckNumber, Card[] cards){
         this.deckNumber = deckNumber;
-        this.cards = new LinkedBlockingQueue<>(Arrays.asList(cards));
+        if (cards == null) {
+            this.cards = new LinkedBlockingQueue<>();
+        } else {
+            this.cards = new LinkedBlockingQueue<>(Arrays.asList(cards));
+        }
     };
 
     @Override
@@ -52,7 +56,7 @@ public class Deck {
     /**
      * Peeks the card on top of the deck
      * @param timeoutMillis 
-     * @return the card
+     * @return the card 
      */
     public synchronized Card peek(int timeoutMillis){
         if (this.cards.isEmpty()) {
