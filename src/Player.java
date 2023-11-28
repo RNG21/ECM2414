@@ -78,7 +78,7 @@ public class Player implements Runnable {
      * @return if the card is a preferred card
      */
     private boolean checkPreferred(Card card, int i) {
-        if (card.getValue() == this.playerNumber) {
+        if (card.value == this.playerNumber) {
             this.preferredCardAmount += 1;
             return true;
         } else {

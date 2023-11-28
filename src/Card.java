@@ -2,7 +2,7 @@ package src;
 
 public class Card {
 
-    private final int value;
+    public final int value;
 
     @Override
     public String toString(){
@@ -11,10 +11,6 @@ public class Card {
 
     public Card(int value) {
         this.value = value;
-    }
-
-    public int getValue() {
-        return this.value;
     }
 
 }
