@@ -150,12 +150,13 @@ public class Player implements Runnable {
 
     private boolean isWinningHand(){
         if (this.preferredCardAmount == 0) {
-            Card lastCard = null;
-            for (Card card : this.hand) {
-                if (lastCard != card) {
+            for (int i = 0; i < this.hand.length; i++) {
+                if (i+1 == this.hand.length) {
                     return false;
                 }
-                lastCard = card;
+                if (this.hand[i] != this.hand[i+1]) {
+                    return false;
+                }
             }
         }
 
