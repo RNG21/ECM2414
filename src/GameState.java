@@ -3,8 +3,20 @@ package src;
 import src.exceptions.AlreadyWon;
 
 public class GameState {
+    private static GameState INSTANCE;
+
     private boolean isWon_ = false;
     private Player wonBy_;
+
+    private GameState() {        
+    }
+
+    public synchronized static GameState getInstance() {
+        if(INSTANCE == null) {
+            INSTANCE = new GameState();
+        }
+        return INSTANCE;
+    }
 
     public boolean isWon(){
         return this.isWon_;

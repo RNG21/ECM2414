@@ -8,8 +8,9 @@ import java.util.Iterator;
 import src.exceptions.InvalidPack;
 import src.exceptions.InvalidPlayerAmount;
 
-public class CardGame {
-    private final GameState state = new GameState();
+public class CardGame{
+    private static CardGame INSTANCE;
+    private final GameState state = GameState.getInstance();
 
     public final int playerAmount;
     private final Player[] players;
@@ -48,7 +49,10 @@ public class CardGame {
         }
     }
 
-    public static CardGame start(){
+    public synchronized static CardGame start(){
+        if (INSTANCE != null) {
+            return INSTANCE;
+        }
         Scanner scanner = new Scanner(System.in);
         int playerAmount = CardGame.getPlayerAmount(scanner);
         Pack pack = CardGame.getPackPath(playerAmount, scanner);
