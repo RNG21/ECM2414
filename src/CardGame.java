@@ -11,7 +11,7 @@ import src.exceptions.InvalidPlayerAmount;
 public class CardGame {
     private final GameState state = new GameState();
 
-    private final int playerAmount;
+    public final int playerAmount;
     private final Player[] players;
 
     private final Deck[] decks;
@@ -30,7 +30,7 @@ public class CardGame {
         this.players = new Player[playerAmount];
         this.decks = new Deck[playerAmount];
 
-        Card[][][] sortedPack = CardGame.dealCards(pack, this.playerAmount);
+        Card[][][] sortedPack = CardGame.dealCards(pack);
         Card[][] playerHands = sortedPack[0];
         Card[][] decks = sortedPack[1];
 
@@ -53,12 +53,7 @@ public class CardGame {
         int playerAmount = CardGame.getPlayerAmount(scanner);
         Pack pack = CardGame.getPackPath(playerAmount, scanner);
         scanner.close();
-        
-        return start(playerAmount, pack);
-    }
-
-    public static CardGame start(int playerAmount, Pack pack){
-        
+                
         CardGame gameInstance = new CardGame(playerAmount, pack);
 
         for (Player player : gameInstance.players) {
@@ -67,7 +62,7 @@ public class CardGame {
 
         return gameInstance;
     }
-
+    
     /**
      * Asks user to input player amount
      * @param scanner  
@@ -144,18 +139,20 @@ public class CardGame {
      *
      * @param pack Pack object to deal cards from
      * @param playerAmount Amount of players
+     * @throws PlayerAmountMismatch 
      * @return a list of list of player hand and list of player decks
      */
-    private static Card[][][] dealCards(Pack pack, int playerAmount) {
+    private static Card[][][] dealCards(Pack pack){
+
         Iterator<Card> pack_ = pack.iterator();
 
-        Card[][][] result = new Card[2][playerAmount][4];
+        Card[][][] result = new Card[2][pack.playerAmount][4];
 
         for (int i = 0; i < 2; i++) {
             // when i = 0 -> insert into player hands
             // when i = 1 -> insert into decks
             for (int cardPos = 0; cardPos < 4; cardPos++) {
-                for (int playerNum = 0; playerNum < playerAmount; playerNum++) {
+                for (int playerNum = 0; playerNum < pack.playerAmount; playerNum++) {
                     result[i][playerNum][cardPos] = pack_.next();
                 }
             }

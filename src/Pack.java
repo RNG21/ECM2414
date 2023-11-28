@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import src.exceptions.InvalidPack;
 import src.exceptions.InvalidPlayerAmount;
@@ -14,7 +16,7 @@ import src.utils.Random;
 public class Pack{
 
     private final Card[] cards;
-    private final int playerAmount;
+    public final int playerAmount;
 
     private Pack(Card[] cards, int playerAmount){
         this.cards = cards;
@@ -33,10 +35,6 @@ public class Pack{
     public Card[] getCards(){
         return this.cards;
     };
-
-    public int getPlayerAmount(){
-        return this.playerAmount;
-    }
 
     /**
      * Each element on a new line
@@ -145,15 +143,28 @@ public class Pack{
      */
     public static Pack readPack(String filename, int playerAmount) throws IOException, FileNotFoundException, InvalidPack{
         String[] stringPack;
+        Card[] cards;
         try {
             stringPack = FileIO.fileToLines(filename, 8*playerAmount);
+            cards = validatePack(stringPack, playerAmount);
         } catch (MaxLines e) {
             throw new InvalidPack(String.format(
                 "File's line count must be 8 times player amount (%d lines), instead found >%d lines", 
                 8*playerAmount, 8*playerAmount
             ));
-        } 
-        Card[] cards = validatePack(stringPack, playerAmount);
+        } catch (InvalidPack e) {
+            // rethrow exception but modify the message
+            // e.g. Element 0 -> Line 1, Array length -> File line count
+            String message = e.getMessage();
+            Pattern pattern = Pattern.compile("(Element)\\s(\\d+)(\\s.+)");
+            Matcher matcher = pattern.matcher(message);
+            if (matcher.find()) {
+                int digit = Integer.valueOf(matcher.group(2)) + 1;
+                message = "Line "+digit+matcher.group(3);
+            } 
+            throw new InvalidPack(message.replaceAll("Array length", "File line count"), e);
+        }
+        
         return new Pack(cards, playerAmount);
     };
 

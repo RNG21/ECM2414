@@ -3,8 +3,8 @@ package src;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.io.File;
 import java.io.IOException;
@@ -12,8 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import src.exceptions.AlreadyWon;
+import src.exceptions.NotEmpty;
 import src.utils.CustomFormatter;
-import src.utils.Random;
 
 public class Player implements Runnable {
     private final Logger logger;
@@ -25,9 +25,8 @@ public class Player implements Runnable {
     private final Deck rightDeck;
 
     private final Card[] hand;
-    private int preferredCardAmount = 0;  // Amount of preferred card in hand
-
-    private int emptySlot;  // Records the index of the card that was most recently discarded
+    private final LinkedList<Integer> toDiscard = new LinkedList<>();  // Stores indicies of cards to discard
+    private int preferredCardAmount = 0;
 
     public Player(int playerNumber, Deck leftDeck, Deck rightDeck, Card[] initialHand, GameState state) {
         this.playerNumber = playerNumber;
@@ -35,7 +34,8 @@ public class Player implements Runnable {
         this.rightDeck = rightDeck;
         this.state = state;
 
-        this.hand = checkInitialHand(initialHand);
+        this.hand = initialHand;
+        checkInitialHand(initialHand);
 
         this.logger = loggerSetup(Logger.getLogger("Player"+this.playerNumber));
     }
@@ -62,23 +62,29 @@ public class Player implements Runnable {
     }
 
     /**
-     * Checks initial hand for preferred cards, puts them towards the front
-     * logic explained in {@link Player#compareAndInsert}
+     * Checks initial hand for preferred cards
      * @param initialHand initial hand for player
-     * @return the sorted hand
-     * @see Player#compareAndInsert
      */
-    private Card[] checkInitialHand(Card[] initialHand){
-        ArrayList<Card> sortedHand = new ArrayList<>();
-        for (Card card : initialHand) {
-            if (card.getValue() == this.playerNumber) {
-                sortedHand.add(0, card);
-                preferredCardAmount += 1;
-            } else {
-                sortedHand.add(card);
-            }
+    private void checkInitialHand(Card[] initialHand){
+        for (int i = 0; i < initialHand.length; i++) {
+            checkPreferred(initialHand[i], i);
         }
-        return sortedHand.toArray(new Card[initialHand.length]);
+    }
+
+    /**
+     * Cheks if a card is a preferred card and adds the index to toDiscard
+     * @param card the card to check
+     * @param i the index of the card
+     * @return if the card is a preferred card
+     */
+    private boolean checkPreferred(Card card, int i) {
+        if (card.getValue() == this.playerNumber) {
+            this.preferredCardAmount += 1;
+            return true;
+        } else {
+            this.toDiscard.addLast(i);
+            return false;
+        }
     }
 
     @Override
@@ -95,10 +101,16 @@ public class Player implements Runnable {
     }
 
     /**
-     * Draws a card from leftDeck, must call {@link Player#discardCard} before 
+     * Draws a card from leftDeck, must have empty slot in hand
+     * @param i index of empty slot in hand
      * @return The drawn card
+     * @throws NotEmpty index given is not empty
      */
-    private Card drawCard(){
+    private Card drawCard(int i) throws NotEmpty{
+        if (this.hand[i] != null) {
+            throw new NotEmpty();
+        }
+
         Card card;
         try {
             card = leftDeck.drawCard();
@@ -106,50 +118,22 @@ public class Player implements Runnable {
             return null;
         }
 
-        compareAndInsert(card);
+        checkPreferred(card, i);
+        this.hand[i] = card;
         
         return card;
     }
 
     /**
-     * Insert preferred card into hand[preferredCardAmount].
-     * If occupied, move non-preferred card to hand[emptySlot].
-     * Example player4:
-     * preferredCardAmount = 1
-     * 4 -> [4, 3, 6, null]
-     * [4, 4, 6, 3]
-     * preferredCardAmount = 2
-     * 
-     * Cards with indices >=preferredCardAmount -> discards
-     * @param card The card to insert
-    */
-    private void compareAndInsert(Card card){
-        if (card.getValue() == this.playerNumber) {
-            Card temp = this.hand[this.preferredCardAmount];
-            if (temp == null) {
-                this.hand[this.emptySlot] = card;
-            } else {
-                this.hand[this.emptySlot] = temp;
-                this.hand[this.preferredCardAmount] = card;
-            }
-            this.preferredCardAmount += 1;
-        } else {
-            this.hand[this.emptySlot] = card;
-        }
-    }
-
-    /**
-     * Discards a random non-preferred card to rightDeck
+     * Discards a card to rightDeck
+     * @param i the index of the card to discard
      * @return The discarded card
      */
-    private Card discardCard(){
-        // Constrain range of cards to discard to avoid discarding preferred cards
-        int randomIndex = Random.randInt(this.preferredCardAmount, this.hand.length);
-        Card card = this.hand[randomIndex];
+    private Card discardCard(int i){
+        Card card = this.hand[i];
 
         this.rightDeck.addCard(card);
-        this.hand[randomIndex] = null;
-        this.emptySlot = randomIndex;
+        this.hand[i] = null;
 
         return card;
     }
@@ -189,21 +173,23 @@ public class Player implements Runnable {
                 return;
             }
 
-            while (this.leftDeck.peek(100) == null) {
+            while (this.leftDeck.waitForCard(500)) {
                 if (this.state.isWon()) {
                     return;
                 }
             }
 
+            int discardIndex = this.toDiscard.removeFirst();
+
             this.logger.log(Level.INFO, 
                 "Player " + this.playerNumber + 
-                " discards a " + discardCard() + 
+                " discards a " + discardCard(discardIndex) + 
                 " to deck " + this.rightDeck.getDeckNumber()
             );
 
             this.logger.log(Level.INFO,
                 "Player " + this.playerNumber +
-                " draws a " + drawCard() +
+                " draws a " + drawCard(discardIndex) +
                 " from deck " + this.leftDeck.getDeckNumber()
             );
 

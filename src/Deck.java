@@ -54,16 +54,16 @@ public class Deck {
     }
 
     /**
-     * Peeks the card on top of the deck
-     * @param timeoutMillis 
-     * @return the card 
+     * Waits for deck to be populated
+     * @param timeoutMillis maximum time to wait for
+     * @return deck is empty or not
      */
-    public synchronized Card peek(int timeoutMillis){
+    public synchronized boolean waitForCard(int timeoutMillis){
         if (this.cards.isEmpty()) {
             try {
                 wait(timeoutMillis);
             } catch (InterruptedException ignored) {}
         }
-        return this.cards.peek();
+        return this.cards.isEmpty();
     }
 }
