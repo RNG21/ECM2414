@@ -2,6 +2,7 @@ package tests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -10,7 +11,6 @@ import src.Card;
 import src.Deck;
 
 public class TestDeck {
-
     @Test
     public void testAddAndRemoveCard(){
         Deck deck = new Deck(0, null);
@@ -30,11 +30,11 @@ public class TestDeck {
         int waitTIme = 1000;
 
         long startTime = System.nanoTime();
-        deck.peek(waitTIme);
+        deck.waitForCard(waitTIme);
         long endTime = System.nanoTime();
 
         long timeTaken = (endTime - startTime);
-        long tolerance = waitTIme*900000;  // Convert milliseconds to nanoseconds but allow for margin
+        long tolerance = waitTIme*990000;  // Convert milliseconds to nanoseconds but allow for margin
         if (timeTaken >= tolerance) {
             this.fail = true;  // Exceptions thrown in thread does not fail the test
         }
@@ -47,7 +47,7 @@ public class TestDeck {
         Thread t1 = new Thread(() -> test(deck));
         t1.start();
         t1.join();
-        assertEquals(this.fail, true);
+        assertTrue(this.fail);
 
         Thread t2 = new Thread(() -> test(deck));
         new Thread(() -> deck.addCard(new Card(0))).start();

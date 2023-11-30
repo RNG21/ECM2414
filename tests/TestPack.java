@@ -37,7 +37,7 @@ public class TestPack {
         assertThrows(InvalidPack.class, () -> Pack.validatePack(nullPack, playerAmount));
         Card[] cards = Pack.validatePack(validPack, playerAmount);
         for (int i = 0; i < cards.length; i++) {
-            assertEquals(String.valueOf(cards[i].getValue()), validPack[i]);
+            assertEquals(String.valueOf(cards[i].value), validPack[i]);
         }
     }
 }
