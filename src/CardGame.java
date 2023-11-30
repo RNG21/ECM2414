@@ -72,12 +72,12 @@ public class CardGame{
      * @param scanner  
      * @return the value entered
      */
-    private static int getPlayerAmount(Scanner scanner){
-        int playerAmount = 0;
+    public static int getPlayerAmount(Scanner scanner){
+        int playerAmount;
 
         while (true) {
-            System.out.println("Enter player amount: ");
-            String userInput = scanner.nextLine();
+            System.out.println("Enter player amount:");
+            String userInput = scanner.nextLine().strip();
 
             try{
                 playerAmount = validatePlayerAmount(userInput);
@@ -97,12 +97,12 @@ public class CardGame{
      * @param scanner
      * @return The pack read from given path
      */
-    private static Pack getPackPath(int playerAmount, Scanner scanner){
+    public static Pack getPackPath(int playerAmount, Scanner scanner){
         Pack pack;
 
         while (true) {
-            System.out.println("Enter pack path: ");
-            String userInput = scanner.nextLine();
+            System.out.println("Enter pack path:");
+            String userInput = scanner.nextLine().strip();
 
             try{
                 pack = Pack.readPack(userInput, playerAmount);
@@ -111,7 +111,7 @@ public class CardGame{
                 System.out.println("File not found!");
             } catch (IOException | InvalidPack e) {
                 System.out.println(e.getMessage());
-            }            
+            }
         }
     }
 
@@ -146,7 +146,7 @@ public class CardGame{
      * @throws PlayerAmountMismatch 
      * @return a list of list of player hand and list of player decks
      */
-    private static Card[][][] dealCards(Pack pack){
+    public static Card[][][] dealCards(Pack pack){
 
         Iterator<Card> pack_ = pack.iterator();
 

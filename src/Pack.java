@@ -160,8 +160,8 @@ public class Pack{
             Matcher matcher = pattern.matcher(message);
             if (matcher.find()) {
                 int digit = Integer.valueOf(matcher.group(2)) + 1;
-                message = "Line "+digit+matcher.group(3);
-            } 
+                message = "Line " + digit + matcher.group(3);
+            }
             throw new InvalidPack(message.replaceAll("Array length", "File line count"), e);
         }
         
