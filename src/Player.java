@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import src.exceptions.AlreadyWon;
-import src.exceptions.NotEmpty;
 import src.utils.CustomFormatter;
 
 public class Player implements Runnable {
@@ -35,9 +34,24 @@ public class Player implements Runnable {
         this.state = state;
 
         this.hand = initialHand;
-        checkInitialHand(initialHand);
+        for (int i = 0; i < initialHand.length; i++) {
+            checkPreferred(initialHand[i], i);
+        }
 
-        this.logger = loggerSetup(Logger.getLogger("Player"+this.playerNumber));
+        this.logger = Logger.getLogger("Player"+this.playerNumber);
+    }
+
+    @Override
+    public String toString(){
+        return "player " + this.playerNumber + " current hand is " + Arrays.toString(this.hand);
+    }
+
+    public int getPlayerNumber(){
+        return this.playerNumber;
+    }
+
+    public Card[] getHand(){
+        return this.hand;
     }
 
     /**
@@ -45,9 +59,9 @@ public class Player implements Runnable {
      * @param logger the logger to add formatting to
      * @return The logger
      */
-    private Logger loggerSetup(Logger logger){
+    private Logger loggerSetup(){
         String outputFilePath = "./logs/Player"+this.playerNumber+"_output.txt";
-        logger.setUseParentHandlers(false);  // Disable logger output to console
+        this.logger.setUseParentHandlers(false);  // Disable logger output to console
         try {
             Files.createDirectories(Paths.get("./logs"));
 
@@ -56,19 +70,9 @@ public class Player implements Runnable {
 
             FileHandler fh = new FileHandler(outputFilePath);
             fh.setFormatter(new CustomFormatter());
-            logger.addHandler(fh);
+            this.logger.addHandler(fh);
           } catch (IOException ignored) {}
-        return logger;
-    }
-
-    /**
-     * Checks initial hand for preferred cards
-     * @param initialHand initial hand for player
-     */
-    private void checkInitialHand(Card[] initialHand){
-        for (int i = 0; i < initialHand.length; i++) {
-            checkPreferred(initialHand[i], i);
-        }
+        return this.logger;
     }
 
     /**
@@ -87,55 +91,24 @@ public class Player implements Runnable {
         }
     }
 
-    @Override
-    public String toString(){
-        return "player " + this.playerNumber + " current hand is " + Arrays.toString(this.hand);
-    }
-
-    public int getPlayerNumber(){
-        return this.playerNumber;
-    }
-
-    public Card[] getHand(){
-        return this.hand;
-    }
-
     /**
-     * Draws a card from leftDeck, must have empty slot in hand
-     * @param i index of empty slot in hand
-     * @return The drawn card
-     * @throws NotEmpty index given is not empty
+     * Discards a card to rightDeck and draws from leftDeck
+     * @param i Index of card to discard
+     * @return the drawn card
      */
-    private Card drawCard(int i) throws NotEmpty{
-        if (this.hand[i] != null) {
-            throw new NotEmpty();
-        }
-
-        Card card;
+    private Card discardAndDraw(int i){
+        Card drawnCard;
         try {
-            card = leftDeck.drawCard();
+            drawnCard = leftDeck.drawCard();
         } catch (NoSuchElementException e) {
             return null;
         }
 
-        checkPreferred(card, i);
-        this.hand[i] = card;
+        this.rightDeck.addCard(this.hand[i]);
+        this.hand[i] = drawnCard;
+        checkPreferred(drawnCard, i);
         
-        return card;
-    }
-
-    /**
-     * Discards a card to rightDeck
-     * @param i the index of the card to discard
-     * @return The discarded card
-     */
-    private Card discardCard(int i){
-        Card card = this.hand[i];
-
-        this.rightDeck.addCard(card);
-        this.hand[i] = null;
-
-        return card;
+        return drawnCard;
     }
 
     /**
@@ -148,16 +121,14 @@ public class Player implements Runnable {
         );
     }
 
-    private boolean isWinningHand(){
+    public boolean isWinningHand(){
         if (this.preferredCardAmount == 0) {
-            for (int i = 0; i < this.hand.length; i++) {
-                if (i+1 == this.hand.length) {
-                    return false;
-                }
-                if (this.hand[i] != this.hand[i+1]) {
+            for (int i = 1; i < this.hand.length; i++) {
+                if (this.hand[i-1].value != this.hand[i].value) {
                     return false;
                 }
             }
+            return true;
         }
 
         return this.preferredCardAmount == this.hand.length;
@@ -181,16 +152,18 @@ public class Player implements Runnable {
             }
 
             int discardIndex = this.toDiscard.removeFirst();
+            Card discardedCard = this.hand[discardIndex];
+            Card drawnCard = discardAndDraw(discardIndex);
 
             this.logger.log(Level.INFO, 
                 "Player " + this.playerNumber + 
-                " discards a " + discardCard(discardIndex) + 
+                " discards a " + discardedCard + 
                 " to deck " + this.rightDeck.getDeckNumber()
             );
 
             this.logger.log(Level.INFO,
                 "Player " + this.playerNumber +
-                " draws a " + drawCard(discardIndex) +
+                " draws a " + drawnCard + 
                 " from deck " + this.leftDeck.getDeckNumber()
             );
 
@@ -205,6 +178,7 @@ public class Player implements Runnable {
      */
     @Override
     public void run(){
+        loggerSetup();
         this.logger.log(Level.INFO, 
             "Player "+this.playerNumber+" initial hand "+Arrays.toString(this.hand)
         );
