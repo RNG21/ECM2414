@@ -5,6 +5,8 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.NoSuchElementException;
+
 import org.junit.Test;
 
 import src.Card;
@@ -22,6 +24,8 @@ public class TestDeck {
         assertEquals(card, addedCard);
         assertEquals(deck.toString(), "[123]");
         assertThrows(NullPointerException.class, () -> deck.addCard(null));
+        deck.drawCard();
+        assertThrows(NoSuchElementException.class, () -> deck.drawCard());
     }
 
     public boolean fail = false;
